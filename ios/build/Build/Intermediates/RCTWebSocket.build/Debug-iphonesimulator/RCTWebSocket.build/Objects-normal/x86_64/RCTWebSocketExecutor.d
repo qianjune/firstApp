@@ -1,0 +1,23 @@
+dependencies: \
+  /Users/qianjun/Project/firstApp/node_modules/react-native/Libraries/WebSocket/RCTWebSocketExecutor.m \
+  /Users/qianjun/Project/firstApp/node_modules/react-native/Libraries/WebSocket/RCTWebSocketExecutor.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTDefines.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTJavaScriptExecutor.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTBridgeModule.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTInvalidating.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTAssert.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTBridge.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTBridgeDelegate.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTJavaScriptLoader.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTFrameUpdate.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTConvert.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTAnimationType.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTBorderStyle.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTLog.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTUtils.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTPointerEvents.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/React/RCTTextDecorationLineType.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/yoga/Yoga.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/yoga/YGEnums.h \
+  /Users/qianjun/Project/firstApp/ios/build/Build/Products/Debug-iphonesimulator/include/yoga/YGMacros.h \
+  /Users/qianjun/Project/firstApp/node_modules/react-native/Libraries/WebSocket/RCTSRWebSocket.h
