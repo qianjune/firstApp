@@ -18,7 +18,7 @@ request.get = (url,params)=>{
 }
 
 request.post = (url,body)=>{
-  const options = _.extends(config.header,{
+  const options = _.assignIn(config.header,{
     body:JSON.stringify(body)
   })
   return fetch(url,options)

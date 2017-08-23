@@ -7,6 +7,7 @@ import {
   Text,
   View,
   TabBarIOS,
+  NavigatorIOS,
 } from 'react-native';
 import Videocam from '../Videocam/Videocam'
 import Recording from '../Recording/Recording'
@@ -18,7 +19,13 @@ class TabBarExample extends Component{
     notifCount: 0,
     presses: 0,
   }
-
+  // _handleNavigationRequest() {
+  //     this.refs.videocam.push({
+  //       component:Recording,
+  //       title: '视频详情',
+  //       passProps: { myProp: 'genius' },
+  //     });
+  //   }
   render() {
     return (
       <TabBarIOS
@@ -34,7 +41,17 @@ class TabBarExample extends Component{
               selectedTab: 'videocam',
             });
           }}>
-          <Videocam />
+          <NavigatorIOS
+            ref='videocam'
+            initialRoute={{
+              component: Videocam,
+              title: '视频列表',
+              passProps: {
+              
+              },
+            }}
+            style={{flex: 1}}
+           />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           iconName={'ios-recording-outline'}
@@ -46,7 +63,13 @@ class TabBarExample extends Component{
               notifCount: this.state.notifCount + 1,
             });
           }}>
-          <Recording />
+          <NavigatorIOS
+            initialRoute={{
+              component: Recording,
+              title: '视频详情',
+            }}
+            style={{flex: 1}}
+           />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           iconName={'ios-more-outline'}

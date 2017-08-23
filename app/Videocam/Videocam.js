@@ -1,6 +1,6 @@
 'use strict';
 
-import React, {Component} from 'react'
+import React, {Component,PropTypes} from 'react'
 import {
   View,
   Text,
@@ -15,11 +15,12 @@ export default class VideocamExample extends Component{
 
     }
   }
+
   render(){
     return(
       <View style={style.container}>
         <Header />
-        <VideoList />
+        <VideoList navigator={this.props.navigator} />
       </View>
     )
   }

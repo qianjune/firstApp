@@ -7,17 +7,15 @@ import {
   ImageBackground,
   StyleSheet,
   View,
-  Dimensions,
   ActivityIndicator,
   RefreshControl
 } from 'react-native'
-import Icon from 'react-native-vector-icons/Ionicons'
 import Mock from 'mockjs'
 import mockData from './config'
+import Video from './Video'
 import request from '../../common/request'
 import requestConfig from '../../common/config'
 
-const width = Dimensions.get('window').width
 
 const cachedResults = {
   nextPage:1,
@@ -44,30 +42,7 @@ export default class VideoList extends Component{
   }
   renderRow(rowData){
     return(
-      <TouchableHighlight>
-        <View style={styles.item}>
-          <Text style={styles.title}>
-            {rowData.title}
-          </Text>
-          <ImageBackground
-            source={{uri:rowData.thumb}}
-            style={styles.thumb}
-          >
-            <Icon name='ios-play' size={28} style={styles.play}/>
-          </ImageBackground>
-          <View style={styles.itemFooter}>
-            <View style={styles.handleBox}>
-              <Icon name='ios-heart-outline' size={28} style={styles.up}/>
-              <Text style={styles.handleText}>喜欢</Text>
-            </View>
-            <View style={styles.handleBox}>
-              <Icon name='ios-chatbubbles-outline' size={28}
-                style={styles.commentIcon}/>
-              <Text style={styles.handleText}>评价</Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
+      <Video navigator={this.props.navigator} rowData={rowData} />
     )
   }
   _fetchData(page){
@@ -192,66 +167,5 @@ export default class VideoList extends Component{
 }
 
 const styles = StyleSheet.create({
-  item:{
-    width:width,
-    marginBottom:10,
-    backgroundColor:'#fff'
-  },
-  title:{
-    padding:10,
-    fontSize:18,
-    color:'#333'
-  },
-  thumb:{
-    width:width,
-    height:width*0.56,
-    // resizeMode:'cover'
-  },
-  itemFooter:{
-    flexDirection:'row',
-    justifyContent:'space-between',
-    backgroundColor:'#eee'
-  },
-  handleBox:{
-    padding:10,
-    flexDirection:'row',
-    width:width/2-0.5,
-    justifyContent:'center',
-    backgroundColor:'#fff',
-    alignItems:'center'
-  },
-  play:{
-    position:'absolute',
-    bottom:14,
-    right:14,
-    width:46,
-    height:46,
-    paddingTop:9,
-    paddingLeft:18,
-    backgroundColor:'transparent',
-    borderColor:'#fff',
-    borderWidth:1,
-    borderRadius:23,
-    color:'#ed7b66'
-  },
-  up:{
-    fontSize:22,
-    color:'#333'
-  },
-  handleText:{
-    paddingLeft:12,
-    fontSize:18,
-    color:'#333'
-  },
-  commentIcon:{
-    fontSize:22,
-    color:'#333'
-  },
-  loadingMore:{
-    marginVertical:20 // setting both marginTop and marginBottom.
-  },
-  loadingText:{
-    color:'#777',
-    textAlign:'center'
-  }
+
 })
