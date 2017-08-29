@@ -13,7 +13,7 @@ import {
   AlertIOS,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
-import Detail from './Detail'
+import Detail from './VideoDetail/Detail'
 import request from '../../common/request'
 import requestConfig from '../../common/config'
 
@@ -155,12 +155,4 @@ const styles = StyleSheet.create({
     fontSize:22,
     color:'#333'
   },
-  loadingMore:{
-    marginVertical:20 // setting both marginTop and marginBottom.
-  },
-  loadingText:{
-    color:'#777',
-    textAlign:'center'
-  }
-
 })

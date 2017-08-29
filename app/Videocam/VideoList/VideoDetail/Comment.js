@@ -1,48 +1,31 @@
 import React,{Component} from 'react'
 import {
   ListView,
-  Text,
-  TouchableHighlight,
   Image,
-  ImageBackground,
-  StyleSheet,
+  Text,
   View,
-  ActivityIndicator,
-  RefreshControl
+  StyleSheet,
+  Dimensions,
+  RefreshControl,
+  ActivityIndicator
 } from 'react-native'
-import Mock from 'mockjs'
-import Video from './Video'
-import request from '../../common/request'
-import requestConfig from '../../common/config'
-
-
+import request from '../../../common/request'
+import requestConfig from '../../../common/config'
+const width = Dimensions.get('window').width
 const cachedResults = {
   nextPage:1,
   items:[],
   total:0,
 }
 
-export default class VideoList extends Component{
+export default class Comment extends Component{
   state={
     isLoadingTail:false,
-    refreshing:false
-  }
-  componentWillMount(){
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    const state = {
-        dataSource: ds.cloneWithRows([]),
-      };
-      this.setState(
-        state
-      )
+    refreshing:false,
+    dataSource:new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}).cloneWithRows([]),
   }
   componentDidMount(){
     this._fetchData(1)
-  }
-  renderRow(rowData){
-    return(
-      <Video navigator={this.props.navigator} rowData={rowData} />
-    )
   }
   _fetchData(page){
     console.log(page)
@@ -56,9 +39,10 @@ export default class VideoList extends Component{
       })
     }
 
-    request.get(requestConfig.api.base+requestConfig.api.creations,{
+    request.get(requestConfig.api.base+requestConfig.api.comments,{
       accessToken:'abcd',
       page:page,
+      creation:124
     })
       .then((data) => {
         if(data.success){
@@ -141,17 +125,29 @@ export default class VideoList extends Component{
 
     this._fetchData(0)
   }
+  _renderRow=(row)=>{
+    return(
+      <View key={row._id} style={styles.replyBox}>
+        <Image style={styles.replyAvatar} source={{uri:row.replyBy.avatar}} />
+        <View style={styles.reply}>
+          <Text style={styles.replyNickname}>{row.replyBy.nickname}</Text>
+          <Text style={styles.replyContent}>{row.content}</Text>
+        </View>
+      </View>
+    )
+  }
   render(){
     return(
       <ListView
         showsVerticalScrollIndicator={false} //y轴滚动条
         enableEmptySections={true}
-        onEndReachedThreshold={20}
-        onEndReached={this._fetchMoreData}
-        renderFooter={this._renderFooter}
         dataSource={this.state.dataSource}
         automaticallyAdjustContentInsets={false}
-        renderRow={(rowData) => this.renderRow(rowData)}
+        renderRow={(rowData) => this._renderRow(rowData)}
+        onEndReachedThreshold={20}
+        onEndReached={this._fetchMoreData}
+        // renderHeader
+        renderFooter={this._renderFooter}
         refreshControl={
           <RefreshControl
             refreshing={this.state.refreshing}
@@ -160,12 +156,36 @@ export default class VideoList extends Component{
             title='拼命加载中。。。'
           />
         }
-       />
+      />
+
     )
   }
 }
 
 const styles = StyleSheet.create({
+  replyBox:{
+    width:width,
+    flexDirection:'row',
+    justifyContent:'flex-start',
+    marginTop:10,
+  },
+  replyAvatar:{
+    width:40,
+    height:40,
+    marginLeft:10,
+    marginRight:10,
+    borderRadius:20,
+  },
+  reply:{
+    flex:1
+  },
+  replyNickname:{
+    color:'#666',
+  },
+  replyContent:{
+    color:'#666',
+    marginTop:4
+  },
   loadingMore:{
     marginVertical:20 // setting both marginTop and marginBottom.
   },

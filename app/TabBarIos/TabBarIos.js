@@ -12,10 +12,11 @@ import {
 import Videocam from '../Videocam/Videocam'
 import Recording from '../Recording/Recording'
 import More from '../More/More'
+import Login from '../More/Login'
 
 class TabBarExample extends Component{
   state={
-    selectedTab: 'videocam',
+    selectedTab: 'more',
     notifCount: 0,
     presses: 0,
   }
@@ -47,7 +48,7 @@ class TabBarExample extends Component{
               component: Videocam,
               title: '视频列表',
               passProps: {
-              
+
               },
             }}
             style={{flex: 1}}
@@ -81,7 +82,7 @@ class TabBarExample extends Component{
               presses: this.state.presses + 1
             });
           }}>
-          <More />
+          <Login />
         </Icon.TabBarItem>
       </TabBarIOS>
     );
