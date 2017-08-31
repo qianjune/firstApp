@@ -9,16 +9,40 @@ import {
   AppRegistry,
   StyleSheet,
   Text,
-  View
+  View,
+  AsyncStorage
 } from 'react-native';
 import TabBar from './app/TabBarIos/TabBarIos'
-
+import Login from './app/More/Login'
 export default class firstApp extends Component {
   constructor(props){
     super(props)
     this.state={
-      clickCount:0
+      clickCount:0,
+      logined:false
     }
+  }
+  componentDidMount(){
+    this._asyncAppStatus()
+  }
+  _asyncAppStatus=()=>{
+    AsyncStorage.getItem('user')
+      .then((data)=>{
+        console.log(data);
+        let user={}
+        let newState={}
+        if(data){
+          user=JSON.parse(data)
+        }
+        console.log(user);
+        if(user&&user.accessToken){
+          newState.user=user
+          newState.logined=true
+        }else{
+          newState.logined=false
+        }
+        this.setState(newState)
+      })
   }
   handleClick(){
     let myCount = this.state.clickCount
@@ -27,7 +51,20 @@ export default class firstApp extends Component {
       clickCount:myCount
     })
   }
+  _afterLogin=(user)=>{
+    user = JSON.stringify(user)
+    AsyncStorage.setItem('user',user)
+      .then(()=>{
+        this.setState({
+          logined:true,
+          // user:user
+        })
+      })
+  }
   render() {
+    if(!this.state.logined){
+      return <Login afterLogin={this._afterLogin}/>
+    }
     return (
         <TabBar />
     );

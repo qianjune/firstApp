@@ -1020,6 +1020,10 @@ chalk@^2.0.0:
     escape-string-regexp "^1.0.5"
     supports-color "^4.0.0"
 
+"charenc@>= 0.0.1":
+  version "0.0.2"
+  resolved "http://registry.npm.taobao.org/charenc/download/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
+
 ci-info@^1.0.0:
   version "1.0.0"
   resolved "http://registry.npm.taobao.org/ci-info/download/ci-info-1.0.0.tgz#dc5285f2b4e251821683681c381c3388f46ec534"
@@ -1229,6 +1233,10 @@ cross-spawn@^5.0.1:
     lru-cache "^4.0.1"
     shebang-command "^1.2.0"
     which "^1.2.9"
+
+"crypt@>= 0.0.1":
+  version "0.0.2"
+  resolved "http://registry.npm.taobao.org/crypt/download/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
 
 cryptiles@2.x.x:
   version "2.0.5"
@@ -3292,6 +3300,16 @@ react-native-button@^2.1.0:
   dependencies:
     prop-types "^15.5.10"
 
+react-native-image-picker@^0.26.4:
+  version "0.26.4"
+  resolved "http://registry.npm.taobao.org/react-native-image-picker/download/react-native-image-picker-0.26.4.tgz#e53b0564bef44cb3c96ff81594e1e874daa1f0b3"
+
+react-native-progress@^3.4.0:
+  version "3.4.0"
+  resolved "http://registry.npm.taobao.org/react-native-progress/download/react-native-progress-3.4.0.tgz#c002e6efb2f0b82dd6889510e669c492da2718ac"
+  dependencies:
+    prop-types "^15.5.8"
+
 react-native-sk-countdown@^1.0.1:
   version "1.0.1"
   resolved "http://registry.npm.taobao.org/react-native-sk-countdown/download/react-native-sk-countdown-1.0.1.tgz#e467bac16949060faa3a7c0db56d460ff8420451"
@@ -3760,6 +3778,13 @@ set-blocking@^2.0.0, set-blocking@~2.0.0:
 setimmediate@^1.0.5:
   version "1.0.5"
   resolved "http://registry.npm.taobao.org/setimmediate/download/setimmediate-1.0.5.tgz#290cbb232e306942d7d7ea9b83732ab7856f8285"
+
+sha1@^1.1.1:
+  version "1.1.1"
+  resolved "http://registry.npm.taobao.org/sha1/download/sha1-1.1.1.tgz#addaa7a93168f393f19eb2b15091618e2700f848"
+  dependencies:
+    charenc ">= 0.0.1"
+    crypt ">= 0.0.1"
 
 shebang-command@^1.2.0:
   version "1.2.0"

@@ -7,26 +7,54 @@ import {
   TextInput,
   StyleSheet,
   AlertIOS,
+  AsyncStorage
 } from 'react-native'
 import Button from 'react-native-button'
 import request from '../common/request'
 import config from '../common/config'
-var {CountDownText} = require('react-native-sk-countdown');
+// import {CountDownText} from 'react-native-sk-countdown';
 export default class MoreExample extends Component{
   constructor(props) {
     super(props)
     this.state={
       phoneNumber:'',
       verifyCode:'',
-      codeSent:false
+      codeSent:false,
+      countingDone:false,
     }
   }
   _submit=()=>{
-
+    const {phoneNumber,verifyCode}=this.state
+    if(!phoneNumber||!verifyCode){
+      return AlertIOS.alert('手机号或验证码不能为空')
+    }
+    const body={
+      phoneNumber,
+      verifyCode
+    }
+    const url = config.api.base+config.api.verify
+    request.post(url,body)
+      .then((data)=>{
+        if(data&&data.success){
+          this.props.afterLogin(data.data)
+          // AlertIOS.alert('登录成功')
+        }else{
+          AlertIOS.alert('获取验证码失败，请检查手机号是否正确')
+        }
+      })
+      .catch((err)=>{
+        AlertIOS.alert('获取验证码失败，请检查网络是否良好')
+      })
   }
   _showVerifyCode(){
     this.setState({
       codeSent:true
+    })
+  }
+  _countingDone=(bool)=>{
+    console.log(bool);
+    this.setState({
+      countingDone:bool
     })
   }
   _sendVerifyCode=()=>{
@@ -42,6 +70,7 @@ export default class MoreExample extends Component{
       .then((data)=>{
         if(data&&data.success){
           this._showVerifyCode()
+          this._countingDone(false)
         }else{
           AlertIOS.alert('获取验证码失败，请检查手机号是否正确')
         }
@@ -83,17 +112,28 @@ export default class MoreExample extends Component{
                     })
                   }}
                 />
-                {/* <CountDownText
-                  style={styles.cd}
-                  countType='seconds' // 计时类型：seconds / date
-                  auto={true} // 自动开始
-                  afterEnd={() => {}} // 结束回调
-                  timeLeft={10} // 正向计时 时间起点为0秒
-                  step={-1} // 计时步长，以秒为单位，正数则为正计时，负数为倒计时
-                  startText='获取验证码' // 开始的文本
-                  endText='获取验证码' // 结束的文本
-                  intervalText={(sec) => sec + '秒重新获取'} // 定时的文本回调
-                /> */}
+                {
+                  this.state.countingDone?
+                  <Button
+                    style={styles.countBtn}
+                    onPress={this._sendVerifyCode}
+                    >获取验证码</Button>:
+                    null
+                    // <CountDownText
+                    //   style={styles.countBtn}
+                    //   countType='seconds' // 计时类型：seconds / date
+                    //   auto={true} // 自动开始
+                    //   afterEnd={
+                    //     this._countingDone.bind(this,true)
+                    //   } // 结束回调
+                    //   timeLeft={10} // 正向计时 时间起点为0秒
+                    //   step={-1} // 计时步长，以秒为单位，正数则为正计时，负数为倒计时
+                    //   startText='获取验证码' // 开始的文本
+                    //   endText='获取验证码' // 结束的文本
+                    //   intervalText={(sec) => sec + '秒重新获取'} // 定时的文本回调
+                    // />
+                }
+
              </View>
              :null
            }
@@ -127,6 +167,7 @@ const styles = StyleSheet.create({
     textAlign:'center'
   },
   inputField:{
+    // flexDirection:'column',
     // flex:1,
     height:40,
     padding:5,
@@ -143,5 +184,24 @@ const styles = StyleSheet.create({
     borderWidth:1,
     borderRadius:4,
     color:'#ee735c'
+  },
+  verifyCodeBox:{
+    flexDirection:'row',
+    marginTop:10,
+    justifyContent:'space-between',
+  },
+  countBtn:{
+    color:'#ee735c',
+    width:110,
+    height:40,
+    padding:10,
+    marginLeft:8,
+    backgroundColor:'transparent',
+    borderColor:'#ee735c',
+    textAlign:'center',
+    fontWeight:'600',
+    fontSize:15,
+    borderRadius:2,
+    borderWidth:1,
   }
 })

@@ -82,7 +82,7 @@ class TabBarExample extends Component{
               presses: this.state.presses + 1
             });
           }}>
-          <Login />
+          <More />
         </Icon.TabBarItem>
       </TabBarIOS>
     );

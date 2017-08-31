@@ -15,6 +15,9 @@ request.get = (url,params)=>{
   return fetch(url)
     .then((response)=>response.json())
     .then((responseJson)=>Mock.mock(responseJson))
+    .catch((err)=>{
+      console.log(err);
+    })
 }
 
 request.post = (url,body)=>{
