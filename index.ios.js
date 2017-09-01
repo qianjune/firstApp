@@ -25,6 +25,13 @@ export default class firstApp extends Component {
   componentDidMount(){
     this._asyncAppStatus()
   }
+  _logout=()=>{
+    AsyncStorage.removeItem('user')
+    this.setState({
+      logined:false,
+      // user:null
+    })
+  }
   _asyncAppStatus=()=>{
     AsyncStorage.getItem('user')
       .then((data)=>{
@@ -66,7 +73,7 @@ export default class firstApp extends Component {
       return <Login afterLogin={this._afterLogin}/>
     }
     return (
-        <TabBar />
+        <TabBar logout={this._logout}/>
     );
   }
 }

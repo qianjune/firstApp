@@ -82,7 +82,7 @@ class TabBarExample extends Component{
               presses: this.state.presses + 1
             });
           }}>
-          <More />
+          <More logout={this.props.logout}/>
         </Icon.TabBarItem>
       </TabBarIOS>
     );
