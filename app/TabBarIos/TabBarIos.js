@@ -16,7 +16,7 @@ import Login from '../More/Login'
 
 class TabBarExample extends Component{
   state={
-    selectedTab: 'more',
+    selectedTab: 'recording',
     notifCount: 0,
     presses: 0,
   }
@@ -64,13 +64,14 @@ class TabBarExample extends Component{
               notifCount: this.state.notifCount + 1,
             });
           }}>
-          <NavigatorIOS
+          <Recording />
+          {/* <NavigatorIOS
             initialRoute={{
               component: Recording,
               title: '视频详情',
             }}
             style={{flex: 1}}
-           />
+           /> */}
         </Icon.TabBarItem>
         <Icon.TabBarItem
           iconName={'ios-more-outline'}
