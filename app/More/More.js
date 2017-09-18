@@ -17,11 +17,10 @@ import {
 import Button from 'react-native-button';
 
 import Icon from 'react-native-vector-icons/Ionicons';
-import sha1 from 'sha1';
 import * as Progress from 'react-native-progress';
+import ImagePicker from 'react-native-image-picker';
 import request from '../common/request';
 import config from '../common/config';
-import ImagePicker from 'react-native-image-picker';
 
 const width = Dimensions.get('window').width;
 

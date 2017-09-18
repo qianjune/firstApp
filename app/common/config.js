@@ -14,7 +14,7 @@ module.exports = {
   api: {
     // base:'http://rapapi.org/mockjs/24457/',
     // base:'http://localhost:1234/',
-    base: 'https://qjune.s1.natapp.cc/',
+    base: 'http://harryjim8.natapp1.cc/',
     creations: 'api/creations',
     up: 'api/up',
     comments: 'api/comments',

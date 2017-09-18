@@ -8,11 +8,16 @@ import {
   AsyncStorage,
   ProgressViewIOS,
   AlertIOS,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ImagePicker from 'react-native-image-picker';
 import { CountDownText } from 'react-native-sk-countdown';
 import Video from 'react-native-video';
+import * as Progress from 'react-native-progress';
+import { AudioRecorder, AudioUtils } from 'react-native-audio';
+import Sound from 'react-native-sound';
+import _ from 'lodash';
 import request from '../common/request';
 import config from '../common/config';
 
@@ -22,6 +27,23 @@ const height = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  uploadAudioBox: {
+    width,
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uploadAudioText: {
+    width: width - 20,
+    borderWidth: 1,
+    padding: 5,
+    borderColor: '#ee735c',
+    borderRadius: 5,
+    textAlign: 'center',
+    fontSize: 30,
+    color: '#ee735c',
   },
   toolbar: {
     flexDirection: 'row',
@@ -141,35 +163,76 @@ const styles = StyleSheet.create({
   recordOn: {
     backgroundColor: '#ccc',
   },
+  previewBox: {
+    width: 80,
+    height: 30,
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    borderWidth: 1,
+    borderColor: '#ee735c',
+    borderRadius: 3,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  previewIcon: {
+    marginRight: 5,
+    fontSize: 20,
+    color: '#ee735c',
+  },
+  previewText: {
+    fontSize: 20,
+    color: '#ee735c',
+  },
 });
+const CLOUDINARY = {
+  cloud_name: 'qjune',
+  api_key: '586975228138865',
+  api_secret: 'GGvaj8rTxuMDuhGube06Cj3pFoA',
+  base: 'http://res.cloudinary.com/qjune',
+  image: 'https://api.cloudinary.com/v1_1/qjune/image/upload',
+  video: 'https://api.cloudinary.com/v1_1/qjune/video/upload',
+  audio: 'https://api.cloudinary.com/v1_1/qjune/raw/upload',
+};
+const initState = {
+  counting: false,
+  recording: false,
+  videoProgress: 0.01,
+  previewVideo: null,
+  videoUploaded: false,
+  videoUploading: false,
+  videoUploadingProgress: 0.01,
+  video: null,
+  videoPlaying: false,
+  rate: 1,
+  muted: true,
+  resizeMode: 'contain',
+  repeat: false,
+  videoTotal: 0,
+  currentTime: 0,
+  paused: false,
+  videoOk: true,
+  modalVisible: false,
+  content: '',
+  isSending: false,
 
-
+  // audio
+  audioPath: `${AudioUtils.DocumentDirectoryPath}/test.aac`,
+  audioPlaying: false,
+  recordDone: false,
+  audioUploadProgress: 0,
+  audio: null,
+};
 export default class RecordingExample extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      counting: false,
-      recording: false,
-      videoProgress: 0.01,
-      previewVideo: null,
-      videoUploaded: false,
-      videoUploading: false,
-      videoUploadingProgress: 0.01,
-      video: null,
-      videoPlaying: false,
-      rate: 1,
-      muted: true,
-      resizeMode: 'contain',
-      repeat: false,
-      videoTotal: 0,
-      currentTime: 0,
-      paused: false,
-      videoOk: true,
-      modalVisible: false,
-      content: '',
-      isSending: false,
-    };
+    const myState = _.clone(initState);
+    this.state = myState;
   }
+
+
   componentDidMount() {
     AsyncStorage.getItem('user')
       .then((data) => {
@@ -183,6 +246,96 @@ export default class RecordingExample extends Component {
           });
         }
       });
+    this._initAudio();
+  }
+  prepareRecordingPath(audioPath) {
+    AudioRecorder.prepareRecordingAtPath(audioPath, {
+      SampleRate: 22050,
+      Channels: 1,
+      AudioQuality: 'High',
+      AudioEncoding: 'aac',
+      AudioEncodingBitRate: 32000,
+    });
+  }
+  async _play() {
+    if (this.state.recording) {
+      await this._stop();
+    }
+
+    // These timeouts are a hacky workaround for some issues with react-native-sound.
+    // See https://github.com/zmxv/react-native-sound/issues/89.
+    setTimeout(() => {
+      const sound = new Sound(this.state.audioPath, '', (error) => {
+        if (error) {
+          console.log('failed to load the sound', error);
+        }
+      });
+
+      setTimeout(() => {
+        sound.play((success) => {
+          if (success) {
+            console.log('successfully finished playing');
+          } else {
+            console.log('playback failed due to audio decoding errors');
+          }
+        });
+      }, 100);
+    }, 100);
+  }
+  _preview=() => {
+    if (this.state.audioPlaying) {
+      // AudioRecorder.stopPlaying();
+    }
+    this.setState({
+      videoProgress: 0,
+      audioPlaying: true,
+      paused: false,
+    });
+    this._play();
+    this.videoPlayer.seek(0);
+  }
+  _uploadAudio=() => {
+    const tags = 'app,audio';
+    const folder = 'audio';
+    const timestamp = Date.now();
+    this._getUploadToken({
+      type: 'audio',
+      cloud: 'cloudinary',
+      timestamp,
+    })
+      .then((data) => {
+        if (data && data.success) {
+        // data.data
+          const { token, key } = data.data;
+          const body = new FormData();
+
+          body.append('folder', folder);
+          body.append('tags', tags);
+          body.append('signature', token);
+          body.append('api_key', CLOUDINARY.api_key);
+          body.append('resource_type', 'video');
+          body.append('file', {
+            type: 'video/mp4',
+            uri: this.state.audioPath,
+            name: key,
+          });
+          body.append('timestamp', timestamp);
+          this._upload(body, 'audio');
+        }
+      });
+  }
+  _initAudio=() => {
+    this.prepareRecordingPath(this.state.audioPath);
+    AudioRecorder.onProgress = (data) => {
+      this.setState({ currentTime: Math.floor(data.currentTime) });
+    };
+
+    AudioRecorder.onFinished = (data) => {
+      // Android callback comes in the form of a promise instead.
+      if (Platform.OS === 'ios') {
+        // this._finishRecording(data.status === 'OK', data.audioFileURL);
+      }
+    };
   }
   _pickVideo=() => {
     const options = {
@@ -206,12 +359,13 @@ export default class RecordingExample extends Component {
         console.log('User cancelled image picker');
       }
       const uri = response.uri;
-      this.setState({
-        previewVideo: uri,
-      });
+      const myState = _.clone(initState);
+      myState.previewVideo = uri;
+
+      this.setState(myState);
       // const signatureURL = config.api.base + config.api.signature;
-      const accessToken = this.state.user.accessToken;
-      this._getQiniuToken(accessToken, 'qiniu')
+
+      this._getUploadToken({ cloud: 'qiniu', type: 'video' })
         .then((data) => {
           if (data && data.success) {
             // data.data
@@ -225,19 +379,23 @@ export default class RecordingExample extends Component {
               uri: response.uri,
               name: key,
             });
-            this._upload(body);
+            this._upload(body, 'video');
           }
         });
     });
   }
-  _upload=(body) => {
+  _upload=(body, type) => {
     console.log(body);
     const xhr = new XMLHttpRequest();
-    const url = config.qiniu.upload;
-    this.setState({
-      videoUploading: true,
-      videoUploadingProgress: 0,
-    });
+    let url = config.qiniu.upload;
+    if (type === 'audio') {
+      url = CLOUDINARY.video;
+    }
+    const state = {};
+    state[`${type}UploadingProgress`] = 0;
+    state[`${type}Uploading`] = true;
+    state[`${type}Uploaded`] = false;
+    this.setState(state);
     xhr.open('POST', url);
     xhr.onload = () => {
       if (xhr.status !== 200) {
@@ -258,48 +416,55 @@ export default class RecordingExample extends Component {
       }
       if (response) {
         console.log('123');
-        this.setState({
-          videoUploading: false,
-          videoUploaded: true,
-          video: response,
-          paused: true,
-        });
-        const vidoeURL = config.api.base + config.api.video;
-        const accessToken = this.state.user.accessToken;
-        request.post(vidoeURL, {
-          accessToken,
-          video: response,
-        })
-          .catch((err) => {
-            console.log(err);
-            AlertIOS.alert('视频同步出错，请重新上传1');
-          })
-          .then((data) => {
-            if (!data || !data.success) {
-              AlertIOS.alert('视频同步出错，请重新上传2');
-            }
-          });
+        const newState = {};
+        newState[`${type}UploadingProgress`] = 1;
+        newState[`${type}Uploading`] = false;
+        newState[`${type}Uploaded`] = true;
+        newState[type] = response;
+        newState.paused = true;
+        this.setState(newState);
+        if (type === 'video') {
+          const updateURL = config.api.base + config.api[type];
+          const accessToken = this.state.user.accessToken;
+          const uploadBody = {
+            accessToken,
+          };
+          uploadBody[type] = response;
+          request.post(updateURL, uploadBody)
+            .catch((err) => {
+              console.log(err);
+              AlertIOS.alert('视频同步出错，请重新上传1');
+            })
+            .then((data) => {
+              if (!data || !data.success) {
+                AlertIOS.alert('视频同步出错，请重新上传2');
+              }
+            });
+        }
       }
     };
     if (xhr.upload) {
+      console.log('正在上传');
       xhr.upload.onprogress = (event) => {
+        console.log('上传进度');
         if (event.lengthComputable) {
           const percent = Number((event.loaded / event.total)).toFixed(2);
-          this.setState({
-            videoUploadingProgress: percent,
-          });
+          console.log('上传进度', percent, type);
+          const progressState = {};
+          progressState[`${type}UploadingProgress`] = Number(percent);
+          console.log(progressState);
+          this.setState(progressState);
         }
       };
     }
     xhr.send(body);
   }
-  _getQiniuToken(accessToken, cloud) {
+  _getUploadToken(body) {
+    // const { accessToken, cloud, type } = body;
+    const accessToken = this.state.user.accessToken;
     const signatureURL = config.api.base + config.api.signature;
-    return request.get(signatureURL, {
-      cloud,
-      accessToken,
-      type: 'video',
-    })
+    body.accessToken = accessToken;
+    return request.get(signatureURL, body)
       .catch((err) => {
         console.log(err);
       });
@@ -325,7 +490,9 @@ export default class RecordingExample extends Component {
   }
   _onEnd=() => {
     if (this.state.recording) {
+      AudioRecorder.stopRecording();
       this.setState({
+        recordDone: true,
         videoProgress: 1,
         recording: false,
         paused: true,
@@ -346,11 +513,13 @@ export default class RecordingExample extends Component {
       counting: false,
       recording: true,
       paused: false,
+      recordDone: false,
     });
+    AudioRecorder.startRecording();
     this.videoPlayer.seek(0);
   }
   _counting=() => {
-    if (!this.state.counting && !this.state.recording) {
+    if (!this.state.counting && !this.state.recording && !this.state.audioPlaying) {
       this.setState({
         counting: true,
       });
@@ -412,16 +581,27 @@ export default class RecordingExample extends Component {
                       null
                   }
                   {
-                    this.state.recording ?
+                    this.state.recording || this.state.audioPlaying ?
                       <View style={styles.progressBox}>
                         <ProgressViewIOS
                           style={styles.progressBar}
                           progressTintColor={'#ee735c'}
                           progress={Number(this.state.videoProgress)}
                         />
-                        <Text style={styles.progressTip}>
-                      正在录制声音中，已完成{(this.state.videoProgress * 100).toFixed(2)}%
-                        </Text>
+                        {
+                          this.state.recording ?
+                            <Text style={styles.progressTip}>
+                        正在录制声音中，已完成{(this.state.videoProgress * 100).toFixed(2)}%
+                            </Text> : null
+                        }
+
+                      </View> : null
+                  }
+                  {
+                    this.state.recordDone ?
+                      <View style={styles.previewBox}>
+                        <Icon name={'ios-play'} style={styles.previewIcon} />
+                        <Text onPress={this._preview} style={styles.previewText}>预览</Text>
                       </View> : null
                   }
                 </View>
@@ -442,7 +622,9 @@ export default class RecordingExample extends Component {
               <View
                 style={styles.recordBox}
               >
-                <View style={[styles.recordIconBox, this.state.recording && styles.recordOn]}>
+                <View style={[styles.recordIconBox,
+                  (this.state.recording || this.state.audioPlaying) && styles.recordOn]}
+                >
                   {
                     this.state.counting && !this.state.recording ?
                       <CountDownText
@@ -467,7 +649,27 @@ export default class RecordingExample extends Component {
               </View>
               : null
           }
-
+          {
+            this.state.videoUploaded && this.state.recordDone ?
+              <View style={styles.uploadAudioBox}>
+                {
+                  !this.state.audioUploaded && !this.state.audioUploading ?
+                    <Text
+                      onPress={this._uploadAudio}
+                      style={styles.uploadAudioText}
+                    >下一步</Text> : null
+                }
+                {
+                  this.state.audioUploading ?
+                    <Progress.Circle
+                      showsText
+                      size={60}
+                      color={'#ee735c'}
+                      progress={this.state.audioUploadingProgress}
+                    /> : null
+                }
+              </View> : null
+          }
         </View>
       </View>
     );

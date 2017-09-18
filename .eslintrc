@@ -24,7 +24,9 @@
     "jest/no-identical-title": "error",
     "jest/valid-expect": "error",
     "no-underscore-dangle": "off",
-    "class-methods-use-this": "off"
+    "class-methods-use-this": "off",
+     "jsx-a11y/href-no-hash": "off",
+    "jsx-a11y/anchor-is-valid": ["warn", { "aspects": ["invalidHref"] }],
   },
   "env": {
     "browser": true,

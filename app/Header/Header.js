@@ -5,17 +5,14 @@ import {
   StyleSheet,
 } from 'react-native';
 
-export default class HeaderExample extends Component {
-  render() {
-    return (
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
+const HeaderExample = () => (
+  <View style={styles.header}>
+    <Text style={styles.headerTitle}>
           视频列表
-        </Text>
-      </View>
-    );
-  }
-}
+    </Text>
+  </View>
+);
+export default HeaderExample;
 
 const styles = StyleSheet.create({
   header: {
