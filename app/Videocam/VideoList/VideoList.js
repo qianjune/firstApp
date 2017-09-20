@@ -2,15 +2,12 @@ import React, { Component } from 'react';
 import {
   ListView,
   Text,
-  TouchableHighlight,
-  Image,
-  ImageBackground,
   StyleSheet,
   View,
   ActivityIndicator,
   RefreshControl,
+  AsyncStorage,
 } from 'react-native';
-import Mock from 'mockjs';
 import Video from './Video';
 import request from '../../common/request';
 import requestConfig from '../../common/config';
@@ -37,10 +34,23 @@ export default class VideoList extends Component {
     );
   }
   componentDidMount() {
-    this._fetchData(1);
+    AsyncStorage.getItem('user')
+      .then((data) => {
+        let user;
+        if (data) {
+          user = JSON.parse(data);
+        }
+        if (user && user.accessToken) {
+          this.setState({
+            user,
+          }, () => {
+            this._fetchData(1);
+          });
+        }
+      });
   }
 
-  _fetchData(page) {
+  _fetchData=(page) => {
     console.log(page);
     if (page !== 0) {
       this.setState({
@@ -53,23 +63,24 @@ export default class VideoList extends Component {
     }
 
     request.get(requestConfig.api.base + requestConfig.api.creations, {
-      accessToken: 'abcd',
+      accessToken: this.state.user.accessToken,
       page,
     })
       .then((data) => {
-        if (data.success) {
-          let items = cachedResults.items;
-          if (page !== 0) {
-            cachedResults.nextPage += 1;
-            items = items.concat(data.data);
-          } else {
-            console.log('上啦加载');
-            items = data.data.concat(items);
-          }
+        if (data && data.success) {
+          if (data.data.length > 0) {
+            let items = cachedResults.items;
+            if (page !== 0) {
+              cachedResults.nextPage += 1;
+              items = items.concat(data.data);
+            } else {
+              console.log('上啦加载');
+              items = data.data.concat(items);
+            }
 
-          cachedResults.items = items;
-          cachedResults.total = data.total;
-          setTimeout(() => {
+            cachedResults.items = items;
+            cachedResults.total = data.total;
+
             if (page !== 0) {
               this.setState({
                 isLoadingTail: false,
@@ -81,7 +92,7 @@ export default class VideoList extends Component {
                 dataSource: this.state.dataSource.cloneWithRows(cachedResults.items),
               });
             }
-          }, 1000);
+          }
         }
       })
       .catch((error) => {
@@ -138,7 +149,7 @@ export default class VideoList extends Component {
   }
   renderRow(rowData) {
     return (
-      <Video navigator={this.props.navigator} rowData={rowData} />
+      <Video user={this.state.user} navigator={this.props.navigator} rowData={rowData} />
     );
   }
   render() {

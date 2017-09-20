@@ -9,6 +9,8 @@ import {
   ProgressViewIOS,
   AlertIOS,
   Platform,
+  Modal,
+  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ImagePicker from 'react-native-image-picker';
@@ -18,6 +20,7 @@ import * as Progress from 'react-native-progress';
 import { AudioRecorder, AudioUtils } from 'react-native-audio';
 import Sound from 'react-native-sound';
 import _ from 'lodash';
+import Button from 'react-native-button';
 import request from '../common/request';
 import config from '../common/config';
 
@@ -27,6 +30,61 @@ const height = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingBox: {
+    width,
+    height: 50,
+    marginTop: 10,
+    padding: 15,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginBottom: 10,
+    textAlign: 'center',
+    color: '#333',
+  },
+  submitBox: {
+    marginTop: 50,
+    padding: 15,
+  },
+  fieldBox: {
+    width: width - 40,
+    height: 36,
+    marginTop: 30,
+    marginLeft: 20,
+    marginRight: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eaeaea',
+  },
+  inputField: {
+    height: 36,
+    textAlign: 'center',
+    color: '#666',
+    fontSize: 14,
+  },
+  btn: {
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 65,
+    padding: 10,
+    backgroundColor: 'transparent',
+    borderColor: '#ee735c',
+    borderWidth: 1,
+    borderRadius: 4,
+    color: '#ee735c',
+  },
+  modalContainer: {
+    width,
+    height,
+    paddingTop: 50,
+    backgroundColor: '#fff',
+  },
+  closeIcon: {
+    position: 'absolute',
+    fontSize: 32,
+    right: 20,
+    top: 30,
+    color: '#ee735c',
   },
   uploadAudioBox: {
     width,
@@ -80,12 +138,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
     borderRadius: 6,
-  },
-  uploadBox: {
-    // flex:1,
-    // flexDirection:'column',
-    // justifyContent:'center',
-    // alignItems:'center'
   },
   uploadTitle: {
     textAlign: 'center',
@@ -197,6 +249,7 @@ const CLOUDINARY = {
   audio: 'https://api.cloudinary.com/v1_1/qjune/raw/upload',
 };
 const initState = {
+
   counting: false,
   recording: false,
   videoProgress: 0.01,
@@ -205,6 +258,7 @@ const initState = {
   videoUploading: false,
   videoUploadingProgress: 0.01,
   video: null,
+  videoId: null,
   videoPlaying: false,
   rate: 1,
   muted: true,
@@ -214,16 +268,23 @@ const initState = {
   currentTime: 0,
   paused: false,
   videoOk: true,
-  modalVisible: false,
   content: '',
   isSending: false,
 
   // audio
+  audioId: null,
   audioPath: `${AudioUtils.DocumentDirectoryPath}/test.aac`,
   audioPlaying: false,
   recordDone: false,
   audioUploadProgress: 0,
   audio: null,
+
+  // publish
+  modalVisible: false,
+  publishing: false,
+  willPublish: false,
+  publishProgress: 0.1,
+  title: '',
 };
 export default class RecordingExample extends Component {
   constructor(props) {
@@ -261,9 +322,6 @@ export default class RecordingExample extends Component {
     if (this.state.recording) {
       await this._stop();
     }
-
-    // These timeouts are a hacky workaround for some issues with react-native-sound.
-    // See https://github.com/zmxv/react-native-sound/issues/89.
     setTimeout(() => {
       const sound = new Sound(this.state.audioPath, '', (error) => {
         if (error) {
@@ -399,11 +457,14 @@ export default class RecordingExample extends Component {
     xhr.open('POST', url);
     xhr.onload = () => {
       if (xhr.status !== 200) {
+        console.log('不是200');
         console.log(xhr);
         AlertIOS.alert('请求失败');
         return;
       }
       if (!xhr.responseText) {
+        console.log('没有text');
+        console.log(xhr);
         AlertIOS.alert('请求失败');
         return;
       }
@@ -421,26 +482,40 @@ export default class RecordingExample extends Component {
         newState[`${type}Uploading`] = false;
         newState[`${type}Uploaded`] = true;
         newState[type] = response;
+        console.log(response);
         newState.paused = true;
         this.setState(newState);
-        if (type === 'video') {
-          const updateURL = config.api.base + config.api[type];
-          const accessToken = this.state.user.accessToken;
-          const uploadBody = {
-            accessToken,
-          };
-          uploadBody[type] = response;
-          request.post(updateURL, uploadBody)
+        const updateURL = config.api.base + config.api[type];
+        const accessToken = this.state.user.accessToken;
+        const uploadBody = {
+          accessToken,
+        };
+        uploadBody[type] = response;
+        if (type === 'audio') {
+          this.setState({
+            audioId: response.public_id,
+          });
+          uploadBody.videoId = this.state.videoId;
+        }
+        request.post(updateURL, uploadBody)
             .catch((err) => {
               console.log(err);
-              AlertIOS.alert('视频同步出错，请重新上传1');
+              AlertIOS.alert(`${type}同步出错，请重新上传1`);
             })
             .then((data) => {
               if (!data || !data.success) {
-                AlertIOS.alert('视频同步出错，请重新上传2');
+                AlertIOS.alert(`${type}同步出错，请重新上传2`);
+              }
+              if (data && data.success) {
+                const mediaState = {};
+                mediaState[`${type}Id`] = data.data;
+                if (type === 'audio') {
+                  this._showModal();
+                  mediaState.willPublish = true;
+                }
+                this.setState(mediaState);
               }
             });
-        }
       }
     };
     if (xhr.upload) {
@@ -524,6 +599,48 @@ export default class RecordingExample extends Component {
         counting: true,
       });
       this.videoPlayer.seek(this.state.videoTotal - 0.01);
+    }
+  }
+  _closeModal=() => {
+    this.setState({
+      modalVisible: false,
+    });
+  }
+  _showModal=() => {
+    this.setState({
+      modalVisible: true,
+    });
+  }
+  _submit=() => {
+    const body = {
+      title: this.state.title,
+      videoId: this.state.videoId,
+      audioId: this.state.audioId,
+      accessToken: this.state.user.accessToken,
+    };
+    const creationURL = config.api.base + config.api.creations;
+    const user = this.state.user;
+    if (user && user.accessToken) {
+      body.accessToken = user.accessToken;
+      this.setState({ publishing: true });
+      request
+        .post(creationURL, body)
+        .catch((err) => {
+          console.log(err);
+          AlertIOS.alert('视频发布失败');
+        })
+        .then((data) => {
+          if (data && data.success) {
+            console.log(data);
+            this._closeModal();
+            // AlertIOS.alert('视频发布成功');//和modal的关闭有冲突
+            const state = _.clone(initState);
+            this.setState(state);
+          } else {
+            this.setState({ publishing: false });
+            AlertIOS.alert('视频发布失败');
+          }
+        });
     }
   }
   render() {
@@ -671,6 +788,58 @@ export default class RecordingExample extends Component {
               </View> : null
           }
         </View>
+
+        <Modal
+          animationType={'fade'}
+          visible={this.state.modalVisible}
+        >
+          <View style={styles.modalContainer}>
+            <Icon name="ios-close-outline" style={styles.closeIcon} onPress={this._closeModal} />
+            {
+              this.state.audioUploaded && !this.state.publishing ?
+                <View style={styles.fieldBox}>
+                  <TextInput
+                    placeholder="视频标题"
+                    style={styles.inputField}
+                    autoCaptialize={'none'}
+                    autoCorrect={false}
+                    defaultValue={this.state.title}
+                    onChangeText={(text) => { this.setState({ title: text }); }}
+                  />
+                </View>
+              : null
+            }
+            {
+              this.state.publishing ?
+                <View style={styles.loadingBox}>
+                  <Text style={styles.loadingText}>耐心等一下，为您生成视频中。。。</Text>
+                  {this.state.willPublish ?
+                    <Text style={styles.loadingText}>正在合并视频音频。。。</Text> : null}
+                  {
+                    this.state.publishProgress > 0.3 ?
+                      <Text style={styles.loadingText}>开始上传啦！</Text> : null
+                  }
+
+                  <Progress.Circle
+                    showsText
+                    size={60}
+                    color={'#ee735c'}
+                    progress={this.state.publishProgress}
+                  />
+                </View> : null
+            }
+            {
+              this.state.audioUploaded && !this.state.publishing ?
+                <View style={styles.submitBox}>
+                  <Button
+                    style={styles.btn}
+                    onPress={this._submit}
+                  >发布视频</Button>
+                </View> : null
+            }
+
+          </View>
+        </Modal>
       </View>
     );
   }

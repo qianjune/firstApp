@@ -10,12 +10,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "firstApp/main.m"
-            timestampString = "525137528.266497"
+            timestampString = "527605675.202917"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "16"
             endingLineNumber = "16"
-            landmarkName = "main()"
+            landmarkName = "main"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

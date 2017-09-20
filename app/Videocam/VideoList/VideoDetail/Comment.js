@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import request from '../../../common/request';
 import requestConfig from '../../../common/config';
+import util from '../../../common/util';
 
 const width = Dimensions.get('window').width;
 const cachedResults = {
@@ -18,7 +19,38 @@ const cachedResults = {
   items: [],
   total: 0,
 };
-
+const styles = StyleSheet.create({
+  replyBox: {
+    width,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginTop: 10,
+  },
+  replyAvatar: {
+    width: 40,
+    height: 40,
+    marginLeft: 10,
+    marginRight: 10,
+    borderRadius: 20,
+  },
+  reply: {
+    flex: 1,
+  },
+  replyNickname: {
+    color: '#666',
+  },
+  replyContent: {
+    color: '#666',
+    marginTop: 4,
+  },
+  loadingMore: {
+    marginVertical: 20, // setting both marginTop and marginBottom.
+  },
+  loadingText: {
+    color: '#777',
+    textAlign: 'center',
+  },
+});
 export default class Comment extends Component {
   state={
     isLoadingTail: false,
@@ -41,36 +73,38 @@ export default class Comment extends Component {
     }
 
     request.get(requestConfig.api.base + requestConfig.api.comments, {
-      accessToken: 'abcd',
+      accessToken: this.props.user.accessToken,
       page,
-      creation: 124,
+      creation: this.props.data._id,
     })
       .then((data) => {
-        if (data.success) {
-          let items = cachedResults.items;
-          if (page !== 0) {
-            cachedResults.nextPage += 1;
-            items = items.concat(data.data);
-          } else {
-            console.log('上啦加载');
-            items = data.data.concat(items);
-          }
-
-          cachedResults.items = items;
-          cachedResults.total = data.total;
-          setTimeout(() => {
+        if (data && data.success) {
+          if (data.data && data.data.length > 0) {
+            let items = cachedResults.items;
             if (page !== 0) {
-              this.setState({
-                isLoadingTail: false,
-                dataSource: this.state.dataSource.cloneWithRows(cachedResults.items),
-              });
+              cachedResults.nextPage += 1;
+              items = items.concat(data.data);
             } else {
-              this.setState({
-                refreshing: false,
-                dataSource: this.state.dataSource.cloneWithRows(cachedResults.items),
-              });
+              console.log('上啦加载');
+              items = data.data.concat(items);
             }
-          }, 1000);
+
+            cachedResults.items = items;
+            cachedResults.total = data.total;
+            setTimeout(() => {
+              if (page !== 0) {
+                this.setState({
+                  isLoadingTail: false,
+                  dataSource: this.state.dataSource.cloneWithRows(cachedResults.items || []),
+                });
+              } else {
+                this.setState({
+                  refreshing: false,
+                  dataSource: this.state.dataSource.cloneWithRows(cachedResults.items || []),
+                });
+              }
+            }, 1000);
+          }
         }
       })
       .catch((error) => {
@@ -111,9 +145,7 @@ export default class Comment extends Component {
     }
     return (
       <ActivityIndicator
-        // animating={this.state.animating}
         style={styles.loadingMore}
-        // size="large"
       />
     );
   }
@@ -127,7 +159,7 @@ export default class Comment extends Component {
   }
   _renderRow=row => (
     <View key={row._id} style={styles.replyBox}>
-      <Image style={styles.replyAvatar} source={{ uri: row.replyBy.avatar }} />
+      <Image style={styles.replyAvatar} source={{ uri: util.avatar(row.replyBy.avatar) }} />
       <View style={styles.reply}>
         <Text style={styles.replyNickname}>{row.replyBy.nickname}</Text>
         <Text style={styles.replyContent}>{row.content}</Text>
@@ -144,7 +176,6 @@ export default class Comment extends Component {
         renderRow={rowData => this._renderRow(rowData)}
         onEndReachedThreshold={20}
         onEndReached={this._fetchMoreData}
-        // renderHeader
         renderFooter={this._renderFooter}
         refreshControl={
           <RefreshControl
@@ -159,36 +190,3 @@ export default class Comment extends Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  replyBox: {
-    width,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginTop: 10,
-  },
-  replyAvatar: {
-    width: 40,
-    height: 40,
-    marginLeft: 10,
-    marginRight: 10,
-    borderRadius: 20,
-  },
-  reply: {
-    flex: 1,
-  },
-  replyNickname: {
-    color: '#666',
-  },
-  replyContent: {
-    color: '#666',
-    marginTop: 4,
-  },
-  loadingMore: {
-    marginVertical: 20, // setting both marginTop and marginBottom.
-  },
-  loadingText: {
-    color: '#777',
-    textAlign: 'center',
-  },
-});

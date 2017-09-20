@@ -479,7 +479,6 @@ const styles = StyleSheet.create({
     right: 20,
     top: 30,
     color: '#ee735c',
-
   },
   gender: {
     backgroundColor: '#ccc',

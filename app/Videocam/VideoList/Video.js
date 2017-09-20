@@ -1,21 +1,18 @@
 import React, { Component } from 'react';
 import {
-  ListView,
   Text,
   TouchableHighlight,
-  Image,
   ImageBackground,
   StyleSheet,
   View,
   Dimensions,
-  ActivityIndicator,
-  RefreshControl,
   AlertIOS,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Detail from './VideoDetail/Detail';
 import request from '../../common/request';
 import requestConfig from '../../common/config';
+import util from '../../common/util';
 
 const width = Dimensions.get('window').width;
 
@@ -25,13 +22,12 @@ export default class VideoExample extends Component {
   }
   _up=() => {
     const up = !this.state.up;
-    const { rowData } = this.props;
+    const { rowData, user } = this.props;
     const url = requestConfig.api.base + requestConfig.api.up;
-
     const body = {
       id: rowData._id,
       up: up ? 'yes' : 'no',
-      accessToken: 'abcd',
+      accessToken: user.accessToken,
     };
     request.post(url, body)
       .then((data) => {
@@ -64,7 +60,7 @@ export default class VideoExample extends Component {
             {rowData.title}
           </Text>
           <ImageBackground
-            source={{ uri: rowData.thumb }}
+            source={{ uri: util.thumb(rowData.qiniu_thumb) }}
             style={styles.thumb}
           >
             <Icon name="ios-play" size={28} style={styles.play} />
@@ -74,7 +70,6 @@ export default class VideoExample extends Component {
               <Icon
                 name={this.state.up ? 'ios-heart' : 'ios-heart-outline'}
                 size={28}
-                style={styles.up}
                 style={[styles.up, this.state.up ? null : styles.down]}
                 onPress={this._up}
               />
